@@ -8,7 +8,7 @@ beforeEach(() => seed(data));
 afterAll(() => db.end());
 
 describe("GET /api/topics", () => {
-    test.only("status 200: responds with all the topics", () => {
+    test("status 200: responds with all the topics", () => {
         return request(app)
         .get("/api/topics")
         .expect(200)
