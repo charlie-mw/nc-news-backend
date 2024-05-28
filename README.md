@@ -1,6 +1,12 @@
 # Northcoders News API
 
-For instructions, please head over to [L2C NC News](https://l2c.northcoders.com/courses/be/nc-news).
+How to connect to the databases
+- Have a look in the .env-example to see what format is expected
+- Find out the two different database names by looking in db/setup.sql
+- Create two new files, .env.development and .env.test
+- In each of these files use PGDATABASE= and then insert the correct database name
+
+
 
 
 
