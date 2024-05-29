@@ -1,6 +1,7 @@
 const {
   selectArticleById,
   selectArticles,
+  selectCommentFromArticleID
 } = require("../models/articles.models");
 const { selectTopics } = require("../models/topics.model");
 
@@ -33,5 +34,16 @@ exports.getArticles = (req, res, next) => {
     })
     .catch((err) => {
       next(err);
+    });
+};
+
+exports.getCommentFromArticleID = (req, res, next) => {
+    const { article_id } = req.params;
+    selectCommentFromArticleID(article_id)
+    .then((comments) => {
+        res.status(200).send({ comments });
+    })
+    .catch((err) => {
+        next(err)
     });
 };

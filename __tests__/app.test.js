@@ -119,56 +119,84 @@ describe("GET /api/articles", () => {
         });
       });
   });
-  test("200: SORT BY query; returns an array of article objects sorted DESC by given parameter in the query", () => {
+});
+test("200: SORT BY query; returns an array of article objects sorted DESC by given parameter in the query", () => {
+  return request(app)
+    .get("/api/articles?sort_by=article_id")
+    .expect(200)
+    .then(({ body }) => {
+      const { articles } = body;
+      expect(articles).toHaveLength(13);
+      expect(articles).toBeSortedBy("article_id", {
+        descending: true,
+      });
+    });
+});
+test("200: ORDER BY query; returns an array of article objects sorted ASC", () => {
+  return request(app)
+    .get("/api/articles?order=ASC")
+    .expect(200)
+    .then(({ body }) => {
+      const { articles } = body;
+      expect(articles).toHaveLength(13);
+      expect(articles).toBeSortedBy("created_at", {
+        descending: false,
+      });
+    });
+});
+test("200: ORDER BY and SORT BY query; returns an array of article objects sorted by title in ascending order", () => {
+  return request(app)
+    .get("/api/articles?sort_by=title&order=ASC")
+    .expect(200)
+    .then(({ body }) => {
+      const { articles } = body;
+      expect(articles).toHaveLength(13);
+      expect(articles).toBeSortedBy("title", {
+        descending: false,
+      });
+    });
+});
+test("400: SORT BY query; returns an error when passing an invalid column name", () => {
+  return request(app)
+    .get("/api/articles?sort_by=invalid")
+    .expect(400)
+    .then(({ body }) => {
+      expect(body.msg).toBe("Invalid sort_by");
+    });
+});
+test("400: ORDER BY query; returns an error when passing an invalid order", () => {
+  return request(app)
+    .get("/api/articles?order=invalid")
+    .expect(400)
+    .then(({ body }) => {
+      expect(body.msg).toBe("Invalid order");
+    });
+});
+describe("GET /api/articles/:article_id/comments", () => {
+  test.only("status 200: responds with an array of comments from the requested article id", () => {
     return request(app)
-      .get("/api/articles?sort_by=article_id")
+      .get("/api/articles/1/comments")
       .expect(200)
       .then(({ body }) => {
-        const { articles } = body;
-        expect(articles).toHaveLength(13);
-        expect(articles).toBeSortedBy("article_id", {
-          descending: true,
+        expect(body.comments).toHaveLength(11);
+        body.comments.forEach((comment) => {
+          expect(comment).toMatchObject({
+            comment_id: expect.any(Number),
+            body: expect.any(String),
+            votes: expect.any(Number),
+            author: expect.any(String),
+            article_id: 1,
+            created_at: expect.any(String),
+          });
         });
       });
   });
-  test("200: ORDER BY query; returns an array of article objects sorted ASC", () => {
-    return request(app)
-      .get("/api/articles?order=ASC")
-      .expect(200)
-      .then(({ body }) => {
-        const { articles } = body;
-        expect(articles).toHaveLength(13);
-        expect(articles).toBeSortedBy("created_at", {
-          descending: false,
+    test.only("status 404: responds with an error message when passed an article id that doesn't exist", () => {
+      return request(app)
+        .get("/api/articles/999/comments")
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Not found");
         });
-      });
-  });
-  test("200: ORDER BY and SORT BY query; returns an array of article objects sorted by title in ascending order", () => {
-    return request(app)
-      .get("/api/articles?sort_by=title&order=ASC")
-      .expect(200)
-      .then(({ body }) => {
-        const { articles } = body;
-        expect(articles).toHaveLength(13);
-        expect(articles).toBeSortedBy("title", {
-          descending: false,
-        });
-      });
-  });
-  test("400: SORT BY query; returns an error when passing an invalid column name", () => {
-    return request(app)
-      .get("/api/articles?sort_by=invalid")
-      .expect(400)
-      .then(({ body }) => {
-        expect(body.msg).toBe("Invalid sort_by");
-      });
-  });
-  test("400: ORDER BY query; returns an error when passing an invalid order", () => {
-    return request(app)
-      .get("/api/articles?order=invalid")
-      .expect(400)
-      .then(({ body }) => {
-        expect(body.msg).toBe("Invalid order");
-      });
-  });
+    });
 });
