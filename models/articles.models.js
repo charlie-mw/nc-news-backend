@@ -22,9 +22,9 @@ exports.selectArticles = (sort_by = "created_at", order = "DESC") => {
 LEFT JOIN comments ON comments.article_id = articles.article_id
   GROUP BY articles.article_id
   ORDER BY articles.${sort_by} ${order}`;
-  
+
   const validOrderByQueries = ["ASC", "DESC"];
- 
+
   if (!validOrderByQueries.includes(order.toUpperCase())) {
     return Promise.reject({ status: 400, msg: "Invalid order" });
   }
@@ -49,4 +49,18 @@ LEFT JOIN comments ON comments.article_id = articles.article_id
       return response.rows;
     })
     .catch((err) => Promise.reject(err));
+};
+
+exports.selectCommentFromArticleID = (article_id) => {
+  return db
+    .query("SELECT * FROM comments WHERE article_id = $1", [article_id])
+    .then((data) => {
+      if (data.rows.length === 0) {
+        return Promise.reject({
+          status: 404,
+          msg: "Not found",
+        });
+      }
+      return data.rows;
+    });
 };
