@@ -7,6 +7,15 @@ const data = require("../db/data/test-data/index.js");
 beforeEach(() => seed(data));
 afterAll(() => db.end());
 
+test("404: ERROR responds with an error when the path is invalid", () => {
+  return request(app)
+    .get("/api/nonsense")
+    .expect(404)
+    .then(({ body }) => {
+      expect(body.msg).toBe("Route not found");
+    });
+});
+
 describe("GET /api/topics", () => {
   test("status 200: responds with all the topics", () => {
     return request(app)
@@ -22,15 +31,6 @@ describe("GET /api/topics", () => {
         });
       });
   });
-});
-
-test("404: ERROR responds with an error when the path is invalid", () => {
-  return request(app)
-    .get("/api/nonsense")
-    .expect(404)
-    .then(({ body }) => {
-      expect(body.msg).toBe("Route not found");
-    });
 });
 
 describe("GET /api", () => {
@@ -52,7 +52,9 @@ describe("GET /api", () => {
               exampleResponse: expect.any(Object),
             });
             if (endpointDocumentation.exampleBody) {
-                expect(typeof endpointDocumentation.exampleBody).toEqual("object");
+              expect(typeof endpointDocumentation.exampleBody).toEqual(
+                "object"
+              );
             }
           }
         );
@@ -401,12 +403,39 @@ describe("DELETE /api/comments/:comment_id", () => {
         expect(body).toEqual({});
       });
   });
-  test("400: Responds with an error message if the comment_id is invalid", () => {
+  test("404: Responds with an error message if the comment_id doesn't exist", () => {
     return request(app)
       .delete("/api/comments/1000")
       .expect(404)
       .then(({ body }) => {
         expect(body.msg).toEqual("Not found");
+      });
+  });
+  test("400: Responds with an error message if the comment_id is invalid", () => {
+    return request(app)
+      .delete("/api/comments/not-an-id")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toEqual("comment_id must be a number");
+      });
+  });
+});
+
+describe("GET /api/users", () => {
+  test("200: returns an array of user objects", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then(({ body }) => {
+        const { users } = body;
+        expect(users).toHaveLength(4);
+        users.forEach((user) => {
+          expect(user).toMatchObject({
+            username: expect.any(String),
+            name: expect.any(String),
+            avatar_url: expect.any(String),
+          });
+        });
       });
   });
 });

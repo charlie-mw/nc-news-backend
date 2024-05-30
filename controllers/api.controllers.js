@@ -1,12 +1,15 @@
 const {
   selectArticleById,
   selectArticles,
-  selectCommentFromArticleID,
-  postCommentOnArticle,
   changeArticleVotes,
-  removeComment
-} = require("../models/articles.models");
+} = require("../models/articles.model");
+const {
+  removeComment,
+  postCommentOnArticle,
+  selectCommentFromArticleID,
+} = require("../models/comments.model");
 const { selectTopics } = require("../models/topics.model");
+const { selectUsers } = require("../models/users.model");
 
 exports.getTopics = (req, res, next) => {
   selectTopics()
@@ -45,13 +48,10 @@ exports.getCommentFromArticleID = (req, res, next) => {
 
   selectArticleById(article_id)
     .then((article) => {
-      selectCommentFromArticleID(article_id)
-        .then((comments) => {
-          res.status(200).send({ comments });
-        })
-        .catch((err) => {
-          next(err);
-        });
+      return selectCommentFromArticleID(article_id);
+    })
+    .then((comments) => {
+      res.status(200).send({ comments });
     })
     .catch((err) => {
       next(err);
@@ -64,13 +64,10 @@ exports.postNewComment = (req, res, next) => {
 
   selectArticleById(article_id)
     .then((article) => {
-      postCommentOnArticle(article_id, username, body)
-        .then((comment) => {
-          res.status(201).send({ comment });
-        })
-        .catch((err) => {
-          next(err);
-        });
+      return postCommentOnArticle(article_id, username, body);
+    })
+    .then((comment) => {
+      res.status(201).send({ comment });
     })
     .catch((err) => {
       next(err);
@@ -92,13 +89,10 @@ exports.addArticleVotes = (req, res, next) => {
   selectArticleById(article_id)
     .then((article) => {
       const newVotes = article.votes + inc_votes;
-      changeArticleVotes(article_id, newVotes)
-        .then((article) => {
-          res.status(200).send({ article });
-        })
-        .catch((err) => {
-          next(err);
-        });
+      return changeArticleVotes(article_id, newVotes);
+    })
+    .then((article) => {
+      res.status(200).send({ article });
     })
     .catch((err) => {
       next(err);
@@ -109,6 +103,16 @@ exports.deleteComment = (req, res, next) => {
   removeComment(req.params.comment_id)
     .then(() => {
       res.status(204).send();
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
+exports.getUsers = (req, res, next) => {
+  selectUsers()
+    .then((users) => {
+      res.status(200).send({ users });
     })
     .catch((err) => {
       next(err);
