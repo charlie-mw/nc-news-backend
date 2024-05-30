@@ -3,6 +3,7 @@ const {
   selectArticles,
   selectCommentFromArticleID,
   postCommentOnArticle,
+  changeArticleVotes,
 } = require("../models/articles.models");
 const { selectTopics } = require("../models/topics.model");
 
@@ -40,9 +41,16 @@ exports.getArticles = (req, res, next) => {
 
 exports.getCommentFromArticleID = (req, res, next) => {
   const { article_id } = req.params;
-  selectCommentFromArticleID(article_id)
-    .then((comments) => {
-      res.status(200).send({ comments });
+
+  selectArticleById(article_id)
+    .then((article) => {
+      selectCommentFromArticleID(article_id)
+        .then((comments) => {
+          res.status(200).send({ comments });
+        })
+        .catch((err) => {
+          next(err);
+        });
     })
     .catch((err) => {
       next(err);
@@ -53,17 +61,43 @@ exports.postNewComment = (req, res, next) => {
   const { article_id } = req.params;
   const { username, body } = req.body;
 
-  if (username === undefined) {
-    return next({ status: 400, msg: "username is required" });
+  selectArticleById(article_id)
+    .then((article) => {
+      postCommentOnArticle(article_id, username, body)
+        .then((comment) => {
+          res.status(201).send({ comment });
+        })
+        .catch((err) => {
+          next(err);
+        });
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
+exports.addArticleVotes = (req, res, next) => {
+  const { article_id } = req.params;
+  const { inc_votes } = req.body;
+
+  if (inc_votes === undefined) {
+    return next({ status: 400, msg: "inc_votes is required" });
   }
 
-  if (body === undefined) {
-    return next({ status: 400, msg: "body is required" });
+  if (typeof inc_votes !== "number") {
+    return next({ status: 400, msg: "inc_votes must be a number" });
   }
 
-  return postCommentOnArticle(article_id, username, body)
-    .then((comment) => {
-      res.status(201).send({ comment });
+  selectArticleById(article_id)
+    .then((article) => {
+      const newVotes = article.votes + inc_votes;
+      changeArticleVotes(article_id, newVotes)
+        .then((article) => {
+          res.status(200).send({ article });
+        })
+        .catch((err) => {
+          next(err);
+        });
     })
     .catch((err) => {
       next(err);
