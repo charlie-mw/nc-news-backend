@@ -53,7 +53,10 @@ LEFT JOIN comments ON comments.article_id = articles.article_id
 
 exports.selectCommentFromArticleID = (article_id) => {
   return db
-    .query("SELECT * FROM comments WHERE article_id = $1", [article_id])
+    .query(
+      "SELECT * FROM comments WHERE article_id = $1 ORDER BY created_at DESC",
+      [article_id]
+    )
     .then((data) => {
       if (data.rows.length === 0) {
         return Promise.reject({
@@ -62,5 +65,25 @@ exports.selectCommentFromArticleID = (article_id) => {
         });
       }
       return data.rows;
+    });
+};
+
+exports.postCommentOnArticle = (article_id, username, body) => {
+  return db
+    .query(
+      `INSERT INTO comments (body, author, article_id) VALUES ($1, $2, $3) RETURNING *;`,
+      [body, username, article_id]
+    )
+    .then((data) => {
+      if (data.rows.length === 0) {
+        return Promise.reject({ status: 400, msg: "Bad Request" });
+      }
+      return data.rows[0];
+    })
+    .catch((err) => {
+      return Promise.reject({
+        status: 404,
+        msg: "Not found",
+      });
     });
 };

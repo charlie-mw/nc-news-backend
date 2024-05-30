@@ -1,7 +1,8 @@
 const {
   selectArticleById,
   selectArticles,
-  selectCommentFromArticleID
+  selectCommentFromArticleID,
+  postCommentOnArticle,
 } = require("../models/articles.models");
 const { selectTopics } = require("../models/topics.model");
 
@@ -38,12 +39,33 @@ exports.getArticles = (req, res, next) => {
 };
 
 exports.getCommentFromArticleID = (req, res, next) => {
-    const { article_id } = req.params;
-    selectCommentFromArticleID(article_id)
+  const { article_id } = req.params;
+  selectCommentFromArticleID(article_id)
     .then((comments) => {
-        res.status(200).send({ comments });
+      res.status(200).send({ comments });
     })
     .catch((err) => {
-        next(err)
+      next(err);
+    });
+};
+
+exports.postNewComment = (req, res, next) => {
+  const { article_id } = req.params;
+  const { username, body } = req.body;
+
+  if (username === undefined) {
+    return next({ status: 400, msg: "username is required" });
+  }
+
+  if (body === undefined) {
+    return next({ status: 400, msg: "body is required" });
+  }
+
+  return postCommentOnArticle(article_id, username, body)
+    .then((comment) => {
+      res.status(201).send({ comment });
+    })
+    .catch((err) => {
+      next(err);
     });
 };
