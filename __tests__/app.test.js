@@ -51,6 +51,9 @@ describe("GET /api", () => {
               queries: expect.any(Array),
               exampleResponse: expect.any(Object),
             });
+            if (endpointDocumentation.exampleBody) {
+                expect(typeof endpointDocumentation.exampleBody).toEqual("object");
+            }
           }
         );
       });
@@ -89,7 +92,7 @@ describe("GET /api/articles/:article_id", () => {
       .get("/api/articles/nonsense")
       .expect(400)
       .then(({ body }) => {
-        expect(body.msg).toBe("Bad request");
+        expect(body.msg).toBe("article_id must be a number");
       });
   });
 });
@@ -195,12 +198,28 @@ describe("GET /api/articles/:article_id/comments", () => {
         });
       });
   });
+  test("status 200: responds with an empty array when the article doesn't have any comments", () => {
+    return request(app)
+      .get("/api/articles/2/comments")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.comments).toEqual([]);
+      });
+  });
   test("status 404: responds with an error message when passed an article id that doesn't exist", () => {
     return request(app)
       .get("/api/articles/999/comments")
       .expect(404)
       .then(({ body }) => {
         expect(body.msg).toBe("Not found");
+      });
+  });
+  test("status 400: responds with an error message when passed an an invalid article id", () => {
+    return request(app)
+      .get("/api/articles/article/comments")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("article_id must be a number");
       });
   });
 });
@@ -239,7 +258,7 @@ describe("POST /api/articles/:article_id/comments", () => {
   });
   test("status 400: responds with an error message when username is not passed", () => {
     return request(app)
-      .post("/api/articles/999/comments")
+      .post("/api/articles/1/comments")
       .send({
         body: "I love this article",
       })
@@ -250,13 +269,125 @@ describe("POST /api/articles/:article_id/comments", () => {
   });
   test("status 400: responds with an error message when body is not passed", () => {
     return request(app)
-      .post("/api/articles/999/comments")
+      .post("/api/articles/1/comments")
       .send({
         username: "ArticleLover21",
       })
       .expect(400)
       .then(({ body }) => {
         expect(body.msg).toBe("body is required");
+      });
+  });
+  test("status 400: ERROR responds with an error when the id is an invalid type", () => {
+    return request(app)
+      .post("/api/articles/nonsense/comments")
+      .send({
+        body: "Butter",
+        username: "butter_bridge",
+      })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("article_id must be a number");
+      });
+  });
+});
+
+describe("PATCH /api/articles/:article_id", () => {
+  test("status 200: adds votes to article and returns updated article", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({
+        inc_votes: 10,
+      })
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.article).toEqual({
+          article_id: 1,
+          title: "Living in the shadow of a great man",
+          topic: "mitch",
+          author: "butter_bridge",
+          body: "I find this existence challenging",
+          created_at: "2020-07-09T20:11:00.000Z",
+          votes: 110,
+          article_img_url:
+            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+        });
+      });
+  });
+  test("status 200: subtracts votes from article and returns updated article", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({
+        inc_votes: -10,
+      })
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.article).toEqual({
+          article_id: 1,
+          title: "Living in the shadow of a great man",
+          topic: "mitch",
+          author: "butter_bridge",
+          body: "I find this existence challenging",
+          created_at: "2020-07-09T20:11:00.000Z",
+          votes: 90,
+          article_img_url:
+            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+        });
+      });
+  });
+  test("status 404: should return an error if the article doesn't exist", () => {
+    return request(app)
+      .patch("/api/articles/999")
+      .send({
+        inc_votes: 10,
+      })
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toEqual("Not found");
+      });
+  });
+  test("status 400: should return an error if inc_votes is not set", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({})
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toEqual("inc_votes is required");
+      });
+  });
+  test("status 400: should return an error if the new votes is less than zero", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({
+        inc_votes: -1000,
+      })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toEqual(
+          "An article can not have less than zero votes"
+        );
+      });
+  });
+  test("status 400: should return an error if inc_votes is not a number", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({
+        inc_votes: "votes",
+      })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toEqual("inc_votes must be a number");
+      });
+  });
+  test("status 400: ERROR responds with an error when the id is an invalid type", () => {
+    return request(app)
+      .patch("/api/articles/blah")
+      .send({
+        inc_votes: -10,
+      })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("article_id must be a number");
       });
   });
 });

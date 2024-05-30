@@ -2,7 +2,7 @@ const db = require("../db/connection");
 
 exports.selectArticleById = (article_id) => {
   if (!Number.isInteger(parseInt(article_id))) {
-    return Promise.reject({ status: 400, msg: "Bad request" });
+    return Promise.reject({ status: 400, msg: "article_id must be a number" });
   }
   return db
     .query("SELECT * FROM articles WHERE article_id = $1", [article_id])
@@ -58,32 +58,43 @@ exports.selectCommentFromArticleID = (article_id) => {
       [article_id]
     )
     .then((data) => {
-      if (data.rows.length === 0) {
-        return Promise.reject({
-          status: 404,
-          msg: "Not found",
-        });
-      }
       return data.rows;
     });
 };
 
 exports.postCommentOnArticle = (article_id, username, body) => {
+  if (username === undefined) {
+    return Promise.reject({ status: 400, msg: "username is required" });
+  }
+
+  if (body === undefined) {
+    return Promise.reject({ status: 400, msg: "body is required" });
+  }
+
   return db
     .query(
       `INSERT INTO comments (body, author, article_id) VALUES ($1, $2, $3) RETURNING *;`,
       [body, username, article_id]
     )
     .then((data) => {
-      if (data.rows.length === 0) {
-        return Promise.reject({ status: 400, msg: "Bad Request" });
-      }
       return data.rows[0];
-    })
-    .catch((err) => {
-      return Promise.reject({
-        status: 404,
-        msg: "Not found",
-      });
+    });
+};
+
+exports.changeArticleVotes = (article_id, votes) => {
+  if (votes < 0) {
+    return Promise.reject({
+      status: 400,
+      msg: "An article can not have less than zero votes",
+    });
+  }
+
+  return db
+    .query(
+      `UPDATE articles SET votes = $1 WHERE article_id = $2 RETURNING *;`,
+      [votes, article_id]
+    )
+    .then(({ rows }) => {
+      return rows[0];
     });
 };

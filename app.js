@@ -6,6 +6,7 @@ const {
   getArticles,
   getCommentFromArticleID,
   postNewComment,
+  addArticleVotes,
 } = require("./controllers/api.controllers");
 const { getEndpoints } = require("./controllers/endpoints.controllers");
 
@@ -17,6 +18,7 @@ app.get("/api/articles/:article_id", getArticlesById);
 app.get("/api/articles", getArticles);
 app.get("/api/articles/:article_id/comments", getCommentFromArticleID);
 app.post("/api/articles/:article_id/comments", postNewComment);
+app.patch("/api/articles/:article_id", addArticleVotes);
 
 app.all("*", (req, res) => {
   res.status(404).send({ msg: "Route not found" });
