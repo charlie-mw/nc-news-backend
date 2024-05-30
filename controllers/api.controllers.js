@@ -4,6 +4,7 @@ const {
   selectCommentFromArticleID,
   postCommentOnArticle,
   changeArticleVotes,
+  removeComment
 } = require("../models/articles.models");
 const { selectTopics } = require("../models/topics.model");
 
@@ -98,6 +99,16 @@ exports.addArticleVotes = (req, res, next) => {
         .catch((err) => {
           next(err);
         });
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
+exports.deleteComment = (req, res, next) => {
+  removeComment(req.params.comment_id)
+    .then(() => {
+      res.status(204).send();
     })
     .catch((err) => {
       next(err);
