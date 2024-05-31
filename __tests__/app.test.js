@@ -176,6 +176,44 @@ describe("GET /api/articles", () => {
         expect(body.msg).toBe("Invalid order");
       });
   });
+  test("200: topic query; returns an array of article objects that have the requested topic", () => {
+    return request(app)
+      .get("/api/articles?topic=mitch")
+      .expect(200)
+      .then(({ body }) => {
+        const { articles } = body;
+        expect(articles).toHaveLength(12);
+      });
+  });
+  test("200: topic query and SORT BY query; returns an array of article objects that have the requested topic sorted by title", () => {
+    return request(app)
+      .get("/api/articles?topic=mitch&sort_by=title")
+      .expect(200)
+      .then(({ body }) => {
+        const { articles } = body;
+        expect(articles).toHaveLength(12);
+        expect(articles).toBeSortedBy("title", {
+          descending: true,
+        });
+      });
+  });
+  test("200: topic query; returns an empty array when the topic has no articles", () => {
+    return request(app)
+      .get("/api/articles?topic=paper")
+      .expect(200)
+      .then(({ body }) => {
+        const { articles } = body;
+        expect(articles).toHaveLength(0);
+      });
+  });
+  test("400: topic query; returns an error when passed a topic that is an empty string", () => {
+    return request(app)
+      .get("/api/articles?topic=")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toEqual("topic cannot be an empty string");
+      });
+  });
 });
 
 describe("GET /api/articles/:article_id/comments", () => {

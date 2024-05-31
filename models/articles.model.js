@@ -17,12 +17,7 @@ exports.selectArticleById = (article_id) => {
     });
 };
 
-exports.selectArticles = (sort_by = "created_at", order = "DESC") => {
-  const sqlQuery = `SELECT articles.author, articles.title, articles.article_id, articles.topic, articles.created_at, articles.votes, articles.article_img_url, count(*) as comment_count FROM articles
-LEFT JOIN comments ON comments.article_id = articles.article_id
-  GROUP BY articles.article_id
-  ORDER BY articles.${sort_by} ${order}`;
-
+exports.selectArticles = (sort_by = "created_at", order = "DESC", topic) => {
   const validOrderByQueries = ["ASC", "DESC"];
 
   if (!validOrderByQueries.includes(order.toUpperCase())) {
@@ -42,6 +37,20 @@ LEFT JOIN comments ON comments.article_id = articles.article_id
   if (!validSortByQueries.includes(sort_by)) {
     return Promise.reject({ status: 400, msg: "Invalid sort_by" });
   }
+
+  let sqlQuery = `SELECT articles.author, articles.title, articles.article_id, articles.topic, articles.created_at, articles.votes, articles.article_img_url, count(*) as comment_count
+  FROM articles
+  LEFT JOIN comments ON comments.article_id = articles.article_id`;
+
+  if (topic !== undefined) {
+    if (topic.length === 0) {
+      return Promise.reject({status: 400, msg: "topic cannot be an empty string"})
+    }
+
+    sqlQuery += ` WHERE topic = '${topic}'`;
+  }
+
+  sqlQuery += ` GROUP BY articles.article_id ORDER BY articles.${sort_by} ${order}`;
 
   return db
     .query(sqlQuery)
