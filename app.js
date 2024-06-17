@@ -1,3 +1,4 @@
+const cors = require("cors");
 const express = require("express");
 const app = express();
 const {
@@ -12,6 +13,7 @@ const {
 } = require("./controllers/api.controllers");
 const { getEndpoints } = require("./controllers/endpoints.controllers");
 
+app.use(cors());
 app.use(express.json());
 
 app.get("/api", getEndpoints);
@@ -21,8 +23,8 @@ app.get("/api/articles", getArticles);
 app.get("/api/articles/:article_id/comments", getCommentFromArticleID);
 app.post("/api/articles/:article_id/comments", postNewComment);
 app.patch("/api/articles/:article_id", addArticleVotes);
-app.delete("/api/comments/:comment_id", deleteComment)
-app.get("/api/users", getUsers)
+app.delete("/api/comments/:comment_id", deleteComment);
+app.get("/api/users", getUsers);
 
 app.all("*", (req, res) => {
   res.status(404).send({ msg: "Route not found" });
