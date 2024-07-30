@@ -2,7 +2,7 @@
 
 ## Summary of project
 
-This project built an API for accessing application data, in the form of a blog/article based site. The backend created provides the necessary information for the frontend application.
+This project built an API for accessing application data, in the form of a blog/article based site. The backend created provides the necessary information for the frontend application. The backend system uses JavaScript, SQL and Express, and implements a RESTful API to handle CRUD operations. Jest is also used to implement test cases to ensure the API endpoints are successful, as well as overall code reliability. 
 
 ## Link to the hosted version: 
 
