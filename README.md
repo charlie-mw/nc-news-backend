@@ -2,8 +2,7 @@
 
 ## Summary of project
 
-This project built an API for accessing application data, in the form of a blog/article based site. The backend created provides the necessary information for the frontend application.
-
+This project built an API for accessing application data, in the form of a blog/article based site. The backend created provides the necessary information for the frontend application. The backend uses JavaScript, SQL and Express, and implements a RESTful API to handle CRUD operations. Express was used to handle client requests, and SQL was used for database management to allow for storage and manipulation of data. Testing was incoroporated using JEST in order to improve code reliability, as well as to ensure that test cases covered the interactions with the API endpoints. The frontend uses JavaScript, React and Vite and builds on top of the backend. React was used to create a responsive user interface by communicating efficently with the backend, and Vite was used to enhance the applications performance. The frontend features a clean and responsive design which enables a consistent experience for users across platforms. 
 ## Link to the hosted version: 
 
 https://nc-news-project-woew.onrender.com
